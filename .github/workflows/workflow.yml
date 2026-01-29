@@ -1,0 +1,44 @@
+name: PR Workflow
+
+on:
+  pull_request:
+    types:
+      # Default events:
+      - opened
+      - synchronize
+      - reopened
+      # Bump version uses labels, so trigger workflow on label changes:
+      - labeled
+      - unlabeled
+      # Re-bump version when base branch changes:
+      - edited
+
+jobs:
+  check_lint_label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for run-lint label
+        run: |
+          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'run-lint') }}" != "true" ]]; then
+            echo "❌ Error: 'run-lint' label is required on this PR"
+            echo "Please add the 'run-lint' label to trigger code formatting jobs"
+            exit 1
+          else
+            echo "✅ 'run-lint' label found"
+          fi
+
+  code_quality:
+    permissions: write-all
+    needs: [ check_lint_label ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for run-lint label
+        run: echo "Running linter"
+      
+  required:
+    permissions: write-all
+    needs: [ check_lint_label ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for run-lint label
+        run: echo "Running required steps"
